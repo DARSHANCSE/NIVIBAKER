@@ -7,9 +7,10 @@ import { saveOTP, mailer } from "../utils/nodemailer.js";
 const adminauthMiddleWare = async (req, res, next) => {
   const token = req.headers.authorization.split(" ")[1];
   console.log("token " + token);
+  
   try {
     const token_decode = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
-    console.log("Token:" + token_decode.id);
+    console.log("Token:" + token_decode.email);
     req.headers.id = token_decode.id;
     console.log("hello " + req.headers.id);
     next();
@@ -33,14 +34,17 @@ const userauthMiddleWare = async (req, res, next) => {
   }
 };
 
+
 const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
   try {
     const user = await otps.findOne({ email: email });
 
     if (!user) res.send({ message: "otp expired" });
+    console.log(otp);
 
-    const check = await bcrypt.compare(otp, user.OTP);
+    const check = await bcrypt.compare(otp.toString(), user.OTP);
+
     if (check) {
       console.log("otp is correct");
       res.send({ message: "otp is correct" ,verified:true});
